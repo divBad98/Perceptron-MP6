@@ -13,6 +13,8 @@ within this file -- the unrevised staff files will be used for all other
 files and classes when code is run, so be careful to not modify anything else.
 """
 
+import numpy as np
+
 def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
     """
     train_set - A Numpy array of 32x32x3 images of shape [7500, 3072].
@@ -31,7 +33,42 @@ def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
     """
     # TODO: Write your code here
     # return predicted labels of development set
-    return []
+
+    NUM_TRAINING_IMAGES = 7500
+    NUM_DEVELOPMENT_IMAGES = 2500
+    NUM_DIMENSIONS = 3072
+
+    perceptron = np.zeros(shape=(NUM_DIMENSIONS,))
+    bias = 0
+
+    for iter_num in range(max_iter):
+        for image_num in range(NUM_TRAINING_IMAGES):
+            #Calculate the classification of the image based on the sign
+            #of the dot product of the perceptron weights and the image dimensions
+            score = np.sign(np.dot(perceptron, train_set[image_num, :]) + 1 * bias)
+            if score >= 0 and train_labels[image_num] == 0 or \
+               score <  0 and train_labels[image_num] == 1:
+                #we want the y for adjustment to be either 1 or -1
+                y = 0
+                if train_labels[image_num]:
+                    y = 1
+                else:
+                    y = -1
+                #incorrectly classified, so we have to adjust the weights
+                adjustment = learning_rate * y * train_set[image_num, :]
+                perceptron += adjustment
+                bias += learning_rate * y * 1
+
+    #Sweet, now classify the development set
+    dev_labels = []
+    for image_num in range(NUM_DEVELOPMENT_IMAGES):
+        score = np.sign(np.dot(perceptron, dev_set[image_num, :]) + 1 * bias)
+        if score >= 0:
+            dev_labels.append(1)
+        else:
+            dev_labels.append(0)
+
+    return dev_labels
 
 def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
     # Write your code here if you would like to attempt the extra credit
