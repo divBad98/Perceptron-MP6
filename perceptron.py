@@ -14,10 +14,10 @@ files and classes when code is run, so be careful to not modify anything else.
 """
 import numpy as np
 
-"""
-This may be handy for extra credit
-Source: Karpathy notes
-"""
+NUM_TRAINING_IMAGES = 7500
+NUM_DEVELOPMENT_IMAGES = 2500
+NUM_DIMENSIONS = 3072
+
 class NearestNeighbor(object):
     def _init_(self):
         pass
@@ -27,15 +27,15 @@ class NearestNeighbor(object):
     def predict_L1(self, X):
         num_test = X.shape[0]
         Ypred = np.zeros(num_test, dtype = self.ytr.dtype)
-        for i in xrange(num_test):
+        for i in range(num_test):
             distances = np.sum(np.abs(self.Xtr - X[i,:]), axis = 1)
             min_index = np.argmin(distances)
             Ypred[i] = self.ytr[min_index]
-        return Ypred
+            return Ypred
     def predict_L2(self, X):
         num_test = X.shape[0]
         Ypred = np.zeros(num_test, dtype = self.ytr.dtype)
-        for i in xrange(num_test):
+        for i in range(num_test):
             distances = np.sqrt(np.sum(np.square(self.Xtr - X[i,:]), axis = 1))
             min_index = np.argmin(distances)
             Ypred[i] = self.ytr[min_index]
@@ -57,29 +57,14 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     dev_set - A Numpy array of 32x32x3 images of shape [2500, 3072].
               It is the same format as train_set
     """
-    # TODO: Write your code here
-    train_set_results = {}
-    for i in range(train_set.shape[0]):
-        if (train_labels[i] == 1):
-            break
-        else:
-            break
-    # return predicted labels of development set
-
-    NUM_TRAINING_IMAGES = 7500
-    NUM_DEVELOPMENT_IMAGES = 2500
-    NUM_DIMENSIONS = 3072
-
-    perceptron = np.zeros(shape=(NUM_DIMENSIONS,))
+    perceptron = np.zeros(NUM_DIMENSIONS)
     bias = 0
-
     for iter_num in range(max_iter):
         for image_num in range(NUM_TRAINING_IMAGES):
             #Calculate the classification of the image based on the sign
             #of the dot product of the perceptron weights and the image dimensions
             score = np.sign(np.dot(perceptron, train_set[image_num, :]) + 1 * bias)
-            if score >= 0 and train_labels[image_num] == 0 or \
-               score <  0 and train_labels[image_num] == 1:
+            if (score >= 0 and train_labels[image_num] == 0) or (score < 0 and train_labels[image_num] == 1):
                 #we want the y for adjustment to be either 1 or -1
                 y = 0
                 if train_labels[image_num]:
@@ -90,7 +75,6 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
                 adjustment = learning_rate * y * train_set[image_num, :]
                 perceptron += adjustment
                 bias += learning_rate * y * 1
-
     #Sweet, now classify the development set
     dev_labels = []
     for image_num in range(NUM_DEVELOPMENT_IMAGES):
@@ -99,9 +83,17 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
             dev_labels.append(1)
         else:
             dev_labels.append(0)
-
     return dev_labels
 
-def classifyEC(train_set, train_labels, dev_set,learning_rate, max_iter):
+def classifyEC(train_set, train_labels, dev_set, learning_rate, max_iter):
     # Write your code here if you would like to attempt the extra credit
-    return []
+    nn = NearestNeighbor()
+    nn.train(train_set, train_labels)
+    dev_labels = []
+    for image_num in range(NUM_DEVELOPMENT_IMAGES):
+        score = np.sum(np.abs(train_set[image_num,:] - dev_set[image_num,:]))
+        if score >= 0:
+            dev_labels.append(1)
+        else:
+            dev_labels.append(0)
+    return dev_labels
